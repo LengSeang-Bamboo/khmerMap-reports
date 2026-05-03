@@ -6,11 +6,13 @@
           <p class="text-[10px] font-semibold uppercase tracking-[0.16em] text-brand-light">{{ province.id }}</p>
           <h2 class="mt-1 truncate text-base font-semibold text-white">{{ province.name }}</h2>
         </div>
-        <div class="shrink-0 rounded-md bg-brand/10 px-2.5 py-1 text-base font-bold tabular-nums text-brand-light">
-          {{ province.totalReport }}
+        <div class="flex flex-col items-center gap-1 shrink-0">
+          <div class="rounded-md bg-brand/10 px-2.5 py-1 text-base font-bold tabular-nums text-brand-light">
+            {{ province.totalReport }}
+          </div>
+          <span class="text-[9px] font-bold uppercase tracking-wider text-slate-500">Reports</span>
         </div>
       </div>
-      <p class="mt-2 text-xs font-medium uppercase tracking-[0.12em] text-slate-500">Reports</p>
     </template>
 
     <div v-else class="flex min-h-16 items-center gap-3">

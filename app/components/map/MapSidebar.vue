@@ -58,14 +58,14 @@
             <span class="block truncate text-xs font-semibold uppercase text-slate-100">{{ p.name }}</span>
             <span class="mt-0.5 block text-[11px] text-slate-500">{{ p.id }}</span>
           </span>
-          <span class="flex shrink-0 items-center gap-2">
+          <span class="flex shrink-0 flex-col items-end gap-0.5">
             <span
-              class="rounded-md px-2 py-1 text-xs font-bold tabular-nums"
+              class="rounded-md px-2 py-0.5 text-xs font-bold tabular-nums"
               :class="p.totalReport > 0 ? 'bg-brand/15 text-brand-light' : 'bg-white/[0.05] text-slate-500'"
             >
               {{ p.totalReport }}
             </span>
-           
+            <span class="text-[8px] font-bold uppercase tracking-wider text-slate-500/80">Reports</span>
           </span>
         </button>
       </div>
