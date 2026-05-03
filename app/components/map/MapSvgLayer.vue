@@ -14,7 +14,7 @@
       height="100%"
       preserveAspectRatio="xMidYMid meet"
       xmlns="http://www.w3.org/2000/svg"
-      class="touch-none select-none"
+      class="select-none"
       :style="{
         transform: `translate(${translateX}px, ${translateY}px) scale(${scale})`,
         cursor: isDragging ? 'grabbing' : 'grab',
@@ -24,6 +24,10 @@
       @mouseleave="onMouseLeave"
       @wheel.prevent="onWheel"
       @mousedown="onMouseDown"
+      @touchstart="onTouchStart"
+      @touchmove="onTouchMove"
+      @touchend="onTouchEnd"
+      @touchcancel="onTouchEnd"
     >
       <!-- eslint-disable-next-line vue/no-v-html -->
       <g id="features" ref="featuresEl" v-html="svgFeatures" />
@@ -163,6 +167,23 @@ function onGlobalMouseMove(e: MouseEvent) {
 }
 
 function onGlobalMouseUp() {
+  isDragging.value = false
+}
+
+function onTouchStart(e: TouchEvent) {
+  if (e.touches.length !== 1) return
+  isDragging.value = true
+  startDragPos.x = e.touches[0].clientX - translateX.value
+  startDragPos.y = e.touches[0].clientY - translateY.value
+}
+
+function onTouchMove(e: TouchEvent) {
+  if (!isDragging.value || e.touches.length !== 1) return
+  translateX.value = e.touches[0].clientX - startDragPos.x
+  translateY.value = e.touches[0].clientY - startDragPos.y
+}
+
+function onTouchEnd() {
   isDragging.value = false
 }
 

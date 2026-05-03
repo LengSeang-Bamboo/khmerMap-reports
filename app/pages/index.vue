@@ -1,5 +1,5 @@
 <template>
-  <div class="flex h-screen flex-col overflow-hidden bg-map-black text-slate-100">
+  <div class="flex h-[100dvh] flex-col overflow-hidden bg-map-black text-slate-100">
     <main class="flex min-h-0 flex-1">
       <MapKhmerMap
         v-if="mapData"

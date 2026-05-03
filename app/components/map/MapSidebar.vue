@@ -1,19 +1,23 @@
 <template>
   <aside
-    class="flex shrink-0 flex-col border-l border-white/10 bg-panel/95 shadow-2xl shadow-black/60 backdrop-blur-xl transition-[width] duration-200 max-[900px]:h-[42vh] max-[900px]:!w-full max-[900px]:border-l-0 max-[900px]:border-t"
-    :class="collapsed ? 'w-16' : 'w-[330px]'"
+    class="flex shrink-0 flex-col bg-panel/95 shadow-2xl shadow-black/60 backdrop-blur-xl transition-all duration-300 min-[901px]:border-l min-[901px]:border-white/10 max-[900px]:w-full max-[900px]:border-t max-[900px]:border-white/10"
+    :class="[
+      collapsed ? 'min-[901px]:w-16 max-[900px]:h-[64px]' : 'min-[901px]:w-[330px] max-[900px]:h-[50dvh]'
+    ]"
   >
     <div class="flex items-center justify-between border-b border-white/[0.06] px-3 py-3">
       <button
-        class="hidden size-9 place-items-center rounded-lg border border-white/10 text-slate-400 transition hover:border-brand/60 hover:text-brand-light min-[901px]:grid"
+        class="grid size-9 place-items-center rounded-lg border border-white/10 text-slate-400 transition hover:border-brand/60 hover:text-brand-light"
         :aria-label="collapsed ? 'Expand sidebar' : 'Collapse sidebar'"
         @click="collapsed = !collapsed"
       >
-        <PanelRightClose v-if="!collapsed" class="size-4" aria-hidden="true" />
-        <PanelRightOpen v-else class="size-4" aria-hidden="true" />
+        <PanelRightClose v-if="!collapsed" class="size-4 hidden min-[901px]:block" aria-hidden="true" />
+        <PanelRightOpen v-if="collapsed" class="size-4 hidden min-[901px]:block" aria-hidden="true" />
+        <ChevronDown v-if="!collapsed" class="size-4 min-[901px]:hidden" aria-hidden="true" />
+        <ChevronUp v-if="collapsed" class="size-4 min-[901px]:hidden" aria-hidden="true" />
       </button>
 
-      <div v-if="!collapsed" class="min-w-0 flex-1 px-2">
+      <div class="min-w-0 flex-1 px-2 transition-opacity" :class="collapsed ? 'max-[900px]:opacity-100 min-[901px]:hidden' : ''">
         <h2 class="truncate text-xs font-semibold uppercase tracking-[0.18em] text-slate-300">Provinces</h2>
         <p class="mt-0.5 truncate text-xs text-slate-500">{{ activeProvince?.name ?? 'Hover a province' }}</p>
       </div>
@@ -70,7 +74,7 @@
 </template>
 
 <script setup lang="ts">
-import { ChevronRight, MapPinned, PanelRightClose, PanelRightOpen } from 'lucide-vue-next'
+import { ChevronDown, ChevronRight, ChevronUp, MapPinned, PanelRightClose, PanelRightOpen } from 'lucide-vue-next'
 import type { ProvinceItem, SelectedProvince } from '~/types/map'
 
 defineProps<{
