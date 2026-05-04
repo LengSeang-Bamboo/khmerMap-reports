@@ -18,7 +18,7 @@
       :style="{
         transform: `translate(${translateX}px, ${translateY}px) scale(${scale})`,
         cursor: isDragging ? 'grabbing' : 'grab',
-        transition: isDragging ? 'none' : 'transform 0.2s ease-out'
+        transition: isDragging ? 'none' : 'transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1)'
       }"
       @mousemove="onMouseMove"
       @mouseleave="onMouseLeave"
@@ -47,37 +47,58 @@
           v-for="l in labels"
           :key="l.id"
           :transform="labelTransform(l)"
-          style="filter: drop-shadow(0 2px 3px rgba(0,0,0,0.9));"
+          class="transition-opacity duration-400"
+          :style="{
+            filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.8))',
+            opacity: hoveredId && hoveredId !== l.id ? 0.35 : 1
+          }"
         >
           <text
             text-anchor="middle"
             :y="labelNameY(l)"
             fill="#f8fafc"
             :font-size="l.fontSize"
-            font-weight="700"
-            letter-spacing=".15"
-            :opacity="hoveredId === l.id ? 1 : .84"
+            font-weight="800"
+            letter-spacing=".02"
+            class="pointer-events-none"
           >
             <tspan
               v-for="(line, index) in l.lines"
               :key="`${l.id}-${index}`"
               x="0"
               :dy="index === 0 ? 0 : l.fontSize + 1"
-              :textLength="lineTextLength(l, line)"
-              lengthAdjust="spacingAndGlyphs"
             >
               {{ line }}
             </tspan>
           </text>
-          <text
-            text-anchor="middle"
-            :y="labelValueY(l)"
-            :fill="l.count > 0 ? '#63e6d2' : 'rgba(248,250,252,0.42)'"
-            :font-size="l.valueFontSize"
-            font-weight="900"
-          >
-            {{ l.count }}
-          </text>
+          
+          <g :transform="`translate(0, ${labelValueY(l)})`">
+            <!-- Symmetrical Grouping (No Background) -->
+            <g :transform="l.flaggedCount > 0 ? `translate(-${l.valueFontSize * 0.55}, 0)` : ''">
+              <text
+                text-anchor="middle"
+                :fill="l.count > 0 ? '#63e6d2' : 'rgba(248,250,252,0.4)'"
+                :font-size="l.valueFontSize"
+                font-weight="900"
+                dominant-baseline="middle"
+              >
+                {{ l.count }}
+              </text>
+              
+              <g v-if="l.flaggedCount > 0" :transform="`translate(${l.valueFontSize * 1.1}, 0)`">
+                <circle r="1.8" fill="#ef4444" cy="-1" />
+                <text
+                  x="2.5"
+                  fill="#ef4444"
+                  :font-size="l.valueFontSize"
+                  font-weight="900"
+                  dominant-baseline="middle"
+                >
+                  {{ l.flaggedCount }}
+                </text>
+              </g>
+            </g>
+          </g>
         </g>
       </g>
     </svg>
@@ -140,6 +161,7 @@ interface MapLabel {
   valueFontSize: number
   maxLineWidth: number
   count: number
+  flaggedCount: number
 }
 
 const labels = ref<MapLabel[]>([])
@@ -190,6 +212,13 @@ function onTouchEnd() {
 onMounted(() => {
   window.addEventListener('mousemove', onGlobalMouseMove)
   window.addEventListener('mouseup', onGlobalMouseUp)
+  
+  // Ensure labels are computed after initial render
+  nextTick(() => {
+    setTimeout(() => {
+      updateLabels()
+    }, 150)
+  })
 })
 
 onUnmounted(() => {
@@ -230,7 +259,7 @@ function applyStyles() {
     el.style.strokeWidth = isSelected ? '2' : '0.65'
     el.style.filter = isSelected ? 'drop-shadow(0 0 16px rgba(239,68,38,0.58))' : ''
     el.style.cursor = 'pointer'
-    el.style.transition = 'fill 0.18s ease, stroke 0.18s ease, filter 0.18s ease, transform 0.18s ease'
+    el.style.transition = 'fill 0.45s cubic-bezier(0.4, 0, 0.2, 1), stroke 0.45s cubic-bezier(0.4, 0, 0.2, 1), filter 0.45s cubic-bezier(0.4, 0, 0.2, 1), transform 0.45s cubic-bezier(0.34, 1.56, 0.64, 1)'
     el.style.transformOrigin = 'center center'
     el.style.transform = isSelected ? 'scale(1.014)' : 'scale(1)'
 
@@ -245,20 +274,39 @@ function updateLabels() {
   if (!g) return
 
   const newLabels: MapLabel[] = []
-  g.querySelectorAll<SVGGraphicsElement>('path, circle').forEach(el => {
+  const elements = g.querySelectorAll<SVGGraphicsElement>('path, circle')
+  
+  if (elements.length === 0 && svgFeatures.value) {
+    nextTick(() => updateLabels())
+    return
+  }
+
+  elements.forEach(el => {
     const id = el.getAttribute('id') ?? ''
+    if (!id) return
+    
     const item = props.provinceMap.get(id)
     const name = item?.name ?? getName(el)
 
     try {
       const bbox = el.getBBox()
+      if (bbox.width === 0 || bbox.height === 0) return
+
       const lines = wrapProvinceName(name, bbox)
       let cx = bbox.x + bbox.width / 2
       let cy = bbox.y + bbox.height / 2
 
-      if (id === 'KH12') cy -= 10
-      if (id === 'KH23') cx += 10
-      if (id === 'KH24') cy -= 4
+      // Manual corrections for provinces where center of bounding box is not ideal
+      if (id === 'KH12') cy -= 12 // Phnom Penh
+      if (id === 'KH23') cx += 15 // Kep
+      if (id === 'KH24') cy -= 8  // Pailin
+      if (id === 'KH18') cx += 10 // Sihanoukville
+      if (id === 'KH8') cy += 5   // Kandal (avoid overlap)
+      
+      // Boundary constraints (SVG 1000x834)
+      const margin = 40
+      cx = Math.max(margin, Math.min(1000 - margin, cx))
+      cy = Math.max(margin, Math.min(834 - margin, cy))
 
       newLabels.push({
         id,
@@ -268,10 +316,11 @@ function updateLabels() {
         y: cy,
         fontSize: labelFontSize(lines, bbox),
         valueFontSize: labelValueFontSize(bbox),
-        maxLineWidth: Math.max(12, bbox.width * 0.62),
+        maxLineWidth: Math.max(20, bbox.width * 0.8),
         count: item?.totalReport ?? 0,
+        flaggedCount: item?.totalFlagged ?? 0,
       })
-    } catch {
+    } catch (e) {
       // Some SVG nodes may not report a bbox while the document is settling.
     }
   })
@@ -294,13 +343,13 @@ function wrapProvinceName(name: string, bbox: { width: number, height: number })
 
 function labelFontSize(lines: string[], bbox: { width: number, height: number }) {
   const longestLine = Math.max(1, ...lines.map(line => line.length))
-  const widthSize = bbox.width / longestLine * 1.4
-  const heightSize = bbox.height / Math.max(1, lines.length + 1) * 0.34
-  return Math.max(3.6, Math.min(7.2, widthSize, heightSize))
+  const widthSize = bbox.width / longestLine * 1.45
+  const heightSize = bbox.height / Math.max(1, lines.length + 1) * 0.45
+  return Math.max(5, Math.min(10.5, widthSize, heightSize))
 }
 
 function labelValueFontSize(bbox: { width: number, height: number }) {
-  return Math.max(3.8, Math.min(7.4, Math.min(bbox.width, bbox.height) * 0.12))
+  return Math.max(6, Math.min(13, Math.min(bbox.width, bbox.height) * 0.16))
 }
 
 function labelTransform(label: MapLabel) {

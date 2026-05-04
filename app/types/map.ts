@@ -2,11 +2,13 @@ export interface ProvinceItem {
   id: string
   name: string
   totalReport: number
+  totalFlagged: number
 }
 
 export interface MapApiResponse {
   totalReport: number
   totalItems: number
+  unidenifyLocation: number
   items: ProvinceItem[]
 }
 
@@ -16,4 +18,5 @@ export interface SelectedProvince {
   id: string
   name: string
   totalReport: number
+  totalFlagged: number
 }

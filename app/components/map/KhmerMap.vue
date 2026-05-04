@@ -3,22 +3,25 @@
     <MapHoverCard :province="hoveredProvince" :x="mouseX" :y="mouseY" />
 
     <section class="relative flex min-w-0 flex-1 flex-col bg-map-black">
-      <div class="absolute left-4 top-4 z-10 flex max-w-[calc(100%-2rem)] gap-2 rounded-xl border border-white/[0.06] bg-[#0b0e14]/90 p-1.5 shadow-[0_16px_40px_rgba(0,0,0,0.6)] backdrop-blur-xl max-sm:left-3 max-sm:top-3 max-sm:grid max-sm:w-[calc(100%-1.5rem)] max-sm:grid-cols-3">
+      <div class="absolute left-4 top-4 z-10 flex max-w-[calc(100%-2rem)] gap-2 rounded-xl border border-white/[0.06] bg-[#0b0e14]/90 p-1.5 shadow-[0_16px_40px_rgba(0,0,0,0.6)] backdrop-blur-xl max-sm:left-3 max-sm:top-3 max-sm:grid max-sm:w-[calc(100%-1.5rem)] max-sm:grid-cols-2 lg:flex">
         <div
           v-for="stat in stats"
           :key="stat.label"
-          class="group relative flex min-w-[120px] items-center gap-3 rounded-xl bg-white/[0.02] px-3.5 py-2.5 transition-all duration-300 hover:bg-white/[0.05] hover:shadow-[0_0_20px_rgba(239,68,38,0.1)] max-sm:min-w-0 max-sm:flex-col max-sm:items-center max-sm:gap-2 max-sm:px-2 max-sm:py-3"
+          class="group relative flex min-w-[110px] items-center gap-3 rounded-xl bg-white/[0.02] px-3.5 py-2.5 transition-all duration-300 hover:bg-white/[0.05] hover:shadow-[0_0_20px_rgba(255,255,255,0.02)] max-sm:min-w-0 max-sm:items-center max-sm:gap-2.5 max-sm:px-2 max-sm:py-3"
         >
-          <div class="absolute inset-0 rounded-xl ring-1 ring-inset ring-white/[0.04] transition-all duration-300 group-hover:ring-brand/20" />
+          <div class="absolute inset-0 rounded-xl ring-1 ring-inset ring-white/[0.04] transition-all duration-300 group-hover:ring-white/[0.08]" />
           
-          <span class="relative grid size-10 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-brand/20 to-brand/5 text-brand shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)] ring-1 ring-brand/20 max-sm:size-8">
+          <span 
+            class="relative grid size-10 shrink-0 place-items-center rounded-xl shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)] ring-1 max-sm:size-9"
+            :class="[stat.bg, stat.text, stat.ring]"
+          >
             <component :is="stat.icon" class="size-[18px] max-sm:size-4" aria-hidden="true" />
-            <div class="absolute inset-0 rounded-xl bg-brand/20 opacity-0 blur-md transition-opacity duration-300 group-hover:opacity-100" />
+            <div class="absolute inset-0 rounded-xl opacity-0 blur-md transition-opacity duration-300 group-hover:opacity-40" :class="stat.bg" />
           </span>
           
-          <span class="relative z-10 min-w-0 text-left max-sm:text-center">
+          <span class="relative z-10 min-w-0 text-left">
             <strong class="block text-xl font-black leading-none tracking-tight text-slate-100 max-sm:text-lg">{{ stat.value }}</strong>
-            <span class="mt-1 block truncate text-[10px] font-bold uppercase tracking-[0.15em] text-slate-500 max-sm:mt-0.5 max-sm:text-[8px]">{{ stat.label }}</span>
+            <span class="mt-1.5 block truncate text-[9px] font-bold uppercase tracking-[0.12em] text-slate-500 max-sm:mt-1 max-sm:text-[8px]">{{ stat.label }}</span>
           </span>
         </div>
       </div>
@@ -44,7 +47,7 @@
 </template>
 
 <script setup lang="ts">
-import { Activity, MapPinned, Siren } from 'lucide-vue-next'
+import { Activity, MapPinned, MapPinOff, Siren } from 'lucide-vue-next'
 import type { MapApiResponse, ProvinceItem } from '~/types/map'
 
 const props = defineProps<{
@@ -63,9 +66,38 @@ const selectedIds = computed(() => {
   return new Set(hoveredId ? [hoveredId] : [])
 })
 const stats = computed(() => [
-  { icon: Siren, value: props.totalReport ?? 0, label: 'Reports' },
-  { icon: MapPinned, value: props.totalProvinces ?? 0, label: 'Provinces' },
-  { icon: Activity, value: props.activeProvinces ?? 0, label: 'Active' },
+  { 
+    icon: Siren, 
+    value: props.totalReport ?? 0, 
+    label: 'Reports',
+    bg: 'bg-brand/15', 
+    text: 'text-brand', 
+    ring: 'ring-brand/20'
+  },
+  { 
+    icon: MapPinOff, 
+    value: props.apiData?.unidenifyLocation ?? 0, 
+    label: 'Missing',
+    bg: 'bg-amber-500/15', 
+    text: 'text-amber-500', 
+    ring: 'ring-amber-500/20'
+  },
+  { 
+    icon: MapPinned, 
+    value: props.totalProvinces ?? 0, 
+    label: 'Provinces',
+    bg: 'bg-slate-400/15', 
+    text: 'text-slate-400', 
+    ring: 'ring-slate-400/20'
+  },
+  { 
+    icon: Activity, 
+    value: props.activeProvinces ?? 0, 
+    label: 'Active',
+    bg: 'bg-aqua/15', 
+    text: 'text-aqua', 
+    ring: 'ring-aqua/20'
+  },
 ])
 
 const mouseX = ref(0)
