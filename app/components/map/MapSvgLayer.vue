@@ -358,11 +358,13 @@ function labelTransform(label: MapLabel) {
 }
 
 function labelNameY(label: MapLabel) {
-  return -((label.lines.length - 1) * (label.fontSize + 1)) / 2 - label.valueFontSize * 0.55
+  const nameHeight = (label.lines.length - 1) * (label.fontSize + 1)
+  return -(nameHeight / 2) - label.valueFontSize * 0.4 + 12
 }
 
 function labelValueY(label: MapLabel) {
-  return ((label.lines.length - 1) * (label.fontSize + 1)) / 2 + label.valueFontSize + 1
+  const nameHeight = (label.lines.length - 1) * (label.fontSize + 1)
+  return (nameHeight / 2) + label.valueFontSize + 12
 }
 
 function lineTextLength(label: MapLabel, line: string) {
